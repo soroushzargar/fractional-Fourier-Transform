@@ -48,3 +48,33 @@ class FractionalFourierTransform:
             np.transpose(complexInput)
         )
         return output
+    
+    
+    def rfrft(self, y, alpha=1, n=None, axis=-1, norm=None):
+        # # Since the transformation is Periodic with p=4
+        # alpha = np.remainder(alpha, 4.0)
+
+        # To perform complex arithmetic, y should be complex
+        complexInput = y.copy().astype(np.complex128)
+
+        # Creating output container
+        output = np.zeros_like(complexInput)
+
+        # Getting Length of the Signal
+        self.signalLen = complexInput.shape[0]
+        # Checking the Fourier Transform Matrix
+        if self.fourierMatrix is None:
+            self.makeFourierMatrix()
+        elif self.fourierMatrix.shape[0] != self.signalLen:
+            self.makeFourierMatrix()
+
+        # Taking the fourier matrix to fractional power
+        fractionalFTMatrix = LinAlg.fractional_matrix_power(
+            self.fourierMatrix, alpha
+        )
+        output = np.matmul(
+            fractionalFTMatrix,
+            np.transpose(complexInput)
+        )
+        SymmetricOutput = output[:self.signalLen//2 + 1]
+        return SymmetricOutput
