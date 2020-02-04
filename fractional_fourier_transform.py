@@ -10,7 +10,7 @@ class FractionalFourierTransform:
     alpha = None
 
     def __init__(self, alpha=1, signalLen=None):
-        super().__init__()
+        #super().__init__()
 
         if signalLen is not None:
             self.signalLen = signalLen
@@ -19,6 +19,7 @@ class FractionalFourierTransform:
             self.alpha = alpha
 
     def makeFourierMatrix(self):
+        print("creating Fourier Matrix on dimension: ", self.signalLen)
         N = self.signalLen
         self.precalculated_fourierMatrix = N * np.array([[
             np.exp(
@@ -51,6 +52,7 @@ class FractionalFourierTransform:
         if self.precalculated_fourierMatrix is None:
             self.makeFourierMatrix()
         if self.precalculated_fractionalTransform is None:
+            print("Creating Fractional Matrix")
             self.precalculated_fractionalTransform = \
                 LinAlg.fractional_matrix_power(
                     self.precalculated_fourierMatrix, self.alpha
@@ -63,9 +65,6 @@ class FractionalFourierTransform:
 
         # Creating output container
         output = np.zeros_like(complexInput)
-
-        print(self.precalculated_fractionalTransform.shape)
-        print(np.transpose(complexInput).shape)
 
         output = np.matmul(
             self.precalculated_fractionalTransform,
@@ -114,11 +113,15 @@ class FractionalFourierTransform:
 
         output = np.matmul(
             self.precalculated_inverseTransform,
-            np.transpose(complexInput)
+            complexInput
         )
         return output
 
     def irfft(self, y, n=None, axis=-1, norm=None):
-        y_rev = np.flip(y[1:], axis)
+        y_rev = None
+        if self.signalLen % 2 == 1:
+            y_rev = np.flip(y[1:], axis)
+        else:
+            y_rev = np.flip(y[1:-1], axis)
         yConventional = np.concatenate((y, y_rev), axis=axis)
-        return self.ifft(yConventional, n, axis, norm)
+        return self.ifft(yConventional, n, axis, norm).real
